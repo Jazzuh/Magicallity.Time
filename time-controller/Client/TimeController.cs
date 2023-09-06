@@ -27,7 +27,7 @@ namespace Magicallity.Time.Client
                     return;
                 }
 
-                var time = new DateTime(long.Parse(value));
+                var time = new DateTime(long.Parse(value), DateTimeKind.Utc);
                     
                 SetClockDate(time.Day, time.Month, time.Year);
                 NetworkOverrideClockTime(time.Hour, time.Minute, time.Second);

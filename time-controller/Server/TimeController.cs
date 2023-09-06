@@ -40,7 +40,7 @@ namespace Magicallity.Time.Server
             var timeTickString = GetResourceKvpString("clock:ticks") ?? "0";
             var timeTick = long.Parse(timeTickString);
 
-            _currentTime = timeTick == 0 ? DateTime.Now : new DateTime(timeTick);
+            _currentTime = timeTick == 0 ? DateTime.UtcNow : new DateTime(timeTick, DateTimeKind.Utc);
 
             Sync();
 
