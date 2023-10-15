@@ -1,6 +1,6 @@
-﻿using CitizenFX.Core.Native;
-using System;
-using CitizenFX.Core;
+﻿using System;
+using CitizenFX.FiveM;
+using CitizenFX.FiveM.Native;
 
 namespace Magicallity.Time
 {
@@ -12,8 +12,8 @@ namespace Magicallity.Time
         /// </summary>
         public static bool ManuallyControl
         {
-            get => runExportReturnMethod(() => _timeExport.GetManualTimeControl(), false);
-            set => runExportMethod(() => _timeExport.SetManualTimeControl(value));
+            get => runExportReturnMethod("GetManualTimeControl", false);
+            set => runExportMethod("SetManualTimeControl", value);
         }
         #endregion
 
@@ -23,7 +23,7 @@ namespace Magicallity.Time
         /// </summary>
         public static void Sync()
         {
-            runExportMethod(() => _timeExport.Sync());
+            runExportMethod("Sync");
         }
 
         protected static partial TimeSpan GetTime()
@@ -32,9 +32,9 @@ namespace Magicallity.Time
 
             if (!ManuallyControl)
             {
-                var hour = runExportReturnMethod(() => _timeExport.GetClockHours(), 0);
-                var minute = runExportReturnMethod(() => _timeExport.GetClockMinutes(), 0);
-                var second = runExportReturnMethod(() => _timeExport.GetClockSeconds(), 0);
+                var hour = runExportReturnMethod("GetClockHours", 0);
+                var minute = runExportReturnMethod("GetClockMinutes", 0);
+                var second = runExportReturnMethod("GetClockSeconds", 0);
 
                 retval = new TimeSpan(hour, minute, second);
             }
@@ -49,7 +49,7 @@ namespace Magicallity.Time
                 return;
             }
 
-            API.NetworkOverrideClockTime(hour, minute, second);
+            Natives.NetworkOverrideClockTime(hour, minute, second);
         }
 
         protected static partial DateTime GetDate()
@@ -58,12 +58,12 @@ namespace Magicallity.Time
 
             if (!ManuallyControl)
             {
-                var year = runExportReturnMethod(() => _timeExport.GetClockYear(), 2020);
-                var month = runExportReturnMethod(() => _timeExport.GetClockMonth(), 1);
-                var day = runExportReturnMethod(() => _timeExport.GetClockDayOfMonth(), 1);
-                var hour = runExportReturnMethod(() => _timeExport.GetClockHours(), 0);
-                var minute = runExportReturnMethod(() => _timeExport.GetClockMinutes(), 0);
-                var second = runExportReturnMethod(() => _timeExport.GetClockSeconds(), 0);
+                var year = runExportReturnMethod("GetClockYear", 2020);
+                var month = runExportReturnMethod("GetClockMonth", 1);
+                var day = runExportReturnMethod("GetClockDayOfMonth", 1);
+                var hour = runExportReturnMethod("GetClockHours", 0);
+                var minute = runExportReturnMethod("GetClockMinutes", 0);
+                var second = runExportReturnMethod("GetClockSeconds", 0);
 
                 retval = new DateTime(year, month, day, hour, minute, second);
             }
@@ -78,7 +78,7 @@ namespace Magicallity.Time
                 return;
             }
 
-            API.SetClockDate(day, month, year);
+            Natives.SetClockDate(day, month, year);
         }
 
         protected static partial void SetPaused(bool state)

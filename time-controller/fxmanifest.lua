@@ -13,6 +13,8 @@ file 'Client/bin/Release/**/publish/*.dll'
 client_script 'Client/bin/Release/**/publish/*.net.dll'
 server_script 'Server/bin/Release/**/publish/*.net.dll'
 
+mono_rt2 'Prerelease expiring 2023-12-31. See https://aka.cfx.re/mono-rt2-preview for info.'
+
 convar_category 'Hour' {
     '',
     {

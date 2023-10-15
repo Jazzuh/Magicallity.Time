@@ -8,9 +8,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CfxUtils.Server" Version="1.1.1" />
-    <PackageReference Include="CitizenFX.Core.Server" Version="1.0.*" />
+    <PackageReference Include="CfxUtils.Convar.Server" Version="1.0.0-monov2" />
+    <PackageReference Include="CfxUtils.Logging.Server" Version="1.0.1-monov2" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+
+    <Reference Include="CitizenFX.Core">
+      <HintPath>..\..\references\CitizenFX.Core.dll</HintPath>
+    </Reference>
+
+    <Reference Include="CitizenFX.Server">
+      <HintPath>..\..\references\CitizenFX.Server.dll</HintPath>
+    </Reference>
 
     <Compile Include="../Shared/**/*.cs" />
   </ItemGroup>

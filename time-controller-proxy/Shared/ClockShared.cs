@@ -1,7 +1,7 @@
 using System;
-using CfxUtils.Shared.Logging;
+using CfxUtils.Logging;
 using CitizenFX.Core;
-using CitizenFX.Core.Native;
+using CitizenFX.Shared.Native;
 
 namespace Magicallity.Time
 {
@@ -10,25 +10,25 @@ namespace Magicallity.Time
         #region Properties
         #region Day
         /// <summary>
-        /// Gets if it's currently day
+        /// Gets if it is day time
         /// </summary>
-        public static bool IsDay => runExportReturnMethod(() => _timeExport.IsDay(), true);
+        public static bool IsDay => runExportReturnMethod("IsDay", true);
 
         /// <summary>
-        /// Gets if it's currently night
+        /// Gets if it is night time
         /// </summary>
-        public static bool IsNight => runExportReturnMethod(() => _timeExport.IsNight(), false);
+        public static bool IsNight => runExportReturnMethod("IsNight", false);
         #endregion
 
         #region Hour
         /// <summary>
-        /// Gets or sets the hour that day starts
+        /// Gets or sets the hour that day will start
         /// </summary>
         public static int DayStartHour
         {
-            get => runExportReturnMethod(() => _timeExport.GetDayStartHour(), 6);
+            get => runExportReturnMethod("GetDayStartHour", 6);
 #if SERVER
-            set => runExportMethod(() => _timeExport.SetDayStartHour(value));
+            set => runExportMethod("SetDayStartHour", value);
 #endif
         }
 
@@ -37,9 +37,9 @@ namespace Magicallity.Time
         /// </summary>
         public static int NightStartHour
         {
-            get => runExportReturnMethod(() => _timeExport.GetNightStartHour(), 21);
+            get => runExportReturnMethod("GetNightStartHour", 21);
 #if SERVER
-            set => runExportMethod(() => _timeExport.SetNightStartHour(value));
+            set => runExportMethod("SetNightStartHour", value);
 #endif
         }
         #endregion
@@ -48,16 +48,16 @@ namespace Magicallity.Time
         /// <summary>
         /// Gets the current amount of milliseconds for a minute to pass in the world
         /// </summary>
-        public static int MillisecondsPerGameMinute => runExportReturnMethod(() => _timeExport.GetCurrentMillisecondsPerGameMinute(), 2000);
+        public static int MillisecondsPerGameMinute => runExportReturnMethod("GetCurrentMillisecondsPerGameMinute", 2000);
 
         /// <summary>
         /// Gets or sets the amount of milliseconds it takes for a minute to pass during the day
         /// </summary>
         public static int DayMillisecondsPerGameMinute
         {
-            get => runExportReturnMethod(() => _timeExport.GetDayMillisecondsPerGameMinute(), 2000);
+            get => runExportReturnMethod("GetDayMillisecondsPerGameMinute", 2000);
 #if SERVER
-            set => runExportMethod(() => _timeExport.SetDayMillisecondsPerGameMinute(value));
+            set => runExportMethod("SetDayMillisecondsPerGameMinute", value);
 #endif
         }
 
@@ -66,9 +66,9 @@ namespace Magicallity.Time
         /// </summary>
         public static int NightMillisecondsPerGameMinute
         {
-            get => runExportReturnMethod(() => _timeExport.GetNightMillisecondsPerGameMinute(), 2000);
+            get => runExportReturnMethod("GetNightMillisecondsPerGameMinute", 2000);
 #if SERVER
-            set => runExportMethod(() => _timeExport.SetNightMillisecondsPerGameMinute(value));
+            set => runExportMethod("SetNightMillisecondsPerGameMinute", value);
 #endif
         }
         #endregion
@@ -101,23 +101,10 @@ namespace Magicallity.Time
         /// </summary>
         public static bool Paused
         {
-            get => runExportReturnMethod(() => _timeExport.GetClockPaused(), false);
+            get => runExportReturnMethod("GetClockPaused", false);
             set => SetPaused(value);
         }
         #endregion
-        #endregion
-
-        #region Fields
-        private static dynamic _timeExport;
-        private static bool _timeControllerActive;
-        #endregion
-
-        #region Constructor
-        public Clock()
-        {
-            _timeExport = Exports["time-controller"];
-            _timeControllerActive = API.GetResourceState("time-controller") is "started" or "starting";
-        }
         #endregion
 
         #region Methods
@@ -153,64 +140,35 @@ namespace Magicallity.Time
         /// <param name="state">The state of the clock pause</param>
         protected static partial void SetPaused(bool state);
 
-        private static TReturnType runExportReturnMethod<TReturnType>(Func<TReturnType> exportFunc, TReturnType defaultReturnType = default)
+        private static TReturnType runExportReturnMethod<TReturnType>(string exportName, TReturnType defaultReturnType = default)
         {
             var returnValue = defaultReturnType;
 
-            if (_timeControllerActive)
+            try
             {
-                try
-                {
-                    returnValue = exportFunc();
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e);
-                }
+                var exportFunc = Exports.Local["time-controller", exportName];
+
+                returnValue = exportFunc().Result;
             }
-            else
+            catch (Exception e)
             {
-                Log.Warning($"Resource {LogColors.Yellow}time-controller{LogColors.Reset} is detected as not running, not running export");
+                Debug.WriteLine($"runExportReturnMethod ({exportName.ToYellow()}): An error occurred - {e.StackTrace}");
             }
 
             return returnValue;
         }
 
-        private static void runExportMethod(Action exportFunc)
+        private static void runExportMethod(string exportName, params object[] args)
         {
-            if (!_timeControllerActive)
-            {
-                Log.Warning($"Resource {LogColors.Yellow}time-controller{LogColors.Reset} is detected as not running, not running export");
-                return;
-            }
-
             try
             {
-                exportFunc.DynamicInvoke();
+                var exportFunc = Exports.Local["time-controller", exportName];
+
+                exportFunc(args);
             }
             catch (Exception e)
             {
-                Log.Error(e);
-            }
-        }
-        #endregion
-
-        #region Events
-        [EventHandler("onResourceStart")]
-        private void OnResourceStart(string resourceName)
-        {
-            if (resourceName == "time-controller")
-            {
-                _timeControllerActive = true;
-            }
-        }
-
-        [EventHandler("onResourceStop")]
-        private void OnResourceStop(string resourceName)
-        {
-            if (resourceName == "time-controller")
-            {
-                _timeControllerActive = false;
+                Debug.WriteLine($"runExportMethod ({exportName.ToYellow()}): An error occurred - {e.StackTrace}");
             }
         }
         #endregion

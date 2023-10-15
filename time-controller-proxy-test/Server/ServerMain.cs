@@ -6,7 +6,7 @@ namespace time_controller_proxy_test.Server
 {
     public class ServerMain : BaseScript
     {
-        [Command("server_proxy_get")]
+        [Command("server_proxy_get", RemapParameters = true)]
         private void OnServerProxyGet()
         {
             Debug.WriteLine($"CurrentDate: {Clock.CurrentDate:G}");
@@ -33,7 +33,7 @@ namespace time_controller_proxy_test.Server
             Debug.WriteLine($"Paused: {Clock.Paused}");
         }
 
-        [Command("server_proxy_set_time")]
+        [Command("server_proxy_set_time", RemapParameters = true)]
         private void OnServerProxySetTime(string[] args)
         {
             var hour = args.GetArgAs(0, 0);

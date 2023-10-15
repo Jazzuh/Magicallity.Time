@@ -1,9 +1,9 @@
 using System;
-using CfxUtils.Shared.Convar;
-using CfxUtils.Shared.Logging;
+using CfxUtils.Convar.Shared;
+using CfxUtils.Logging;
 using CitizenFX.Core;
 using Magicallity.Time.Shared;
-using static CitizenFX.Core.Native.API;
+using static CitizenFX.FiveM.Native.Natives;
 
 namespace Magicallity.Time.Client
 {
@@ -20,7 +20,7 @@ namespace Magicallity.Time.Client
         {
             AddStateBagChangeHandler("clock:ticks", "global", new Action<string, string, dynamic, int, bool>((bagName, key, value, res, replicated) =>
             {
-                Log.Trace($"Clock has been updated - {LogColors.Yellow}{value}{LogColors.Reset}");
+                Debug.WriteLine($"Clock has been updated - {LogFormatter.ToYellow(value)}");
 
                 if (GetManualTimeControl())
                 {
@@ -35,7 +35,7 @@ namespace Magicallity.Time.Client
 
             AddStateBagChangeHandler("clock:paused", "global", new Action<string, string, dynamic, int, bool>((bagName, key, value, res, replicated) =>
             {
-                Log.Trace($"Clock paused state has been updated - {LogColors.Yellow}{value}{LogColors.Reset}");
+                Debug.WriteLine($"Clock paused state has been updated - {LogFormatter.ToYellow(value)}");
 
                 if (GetManualTimeControl())
                 {
@@ -51,10 +51,6 @@ namespace Magicallity.Time.Client
                     Sync();
                 }
             }));
-
-            Exports.Add("Sync", new Action(Sync));
-            Exports.Add("SetManualTimeControl", new Action<bool>(SetManualTimeControl));
-            Exports.Add("GetManualTimeControl", new Func<bool>(GetManualTimeControl));
         }
         #endregion
 
@@ -62,6 +58,7 @@ namespace Magicallity.Time.Client
         /// <summary>
         /// Syncs the clock with the global state
         /// </summary>
+        [Export("Sync")]
         public void Sync()
         {
             if (_manualTimeControl)
@@ -79,6 +76,7 @@ namespace Magicallity.Time.Client
         /// Sets if the clock will sync with the server. If set to true, client side scripts will have to manually control the clock
         /// </summary>
         /// <param name="state">If the clock will be manually controlled or not</param>
+        [Export("SetManualTimeControl")]
         public void SetManualTimeControl(bool state)
         {
             _manualTimeControl = state;
@@ -97,6 +95,7 @@ namespace Magicallity.Time.Client
         /// Gets if the clock is being manually controlled
         /// </summary>
         /// <returns>If the clock is being manually controlled</returns>
+        [Export("GetManualTimeControl")]
         public bool GetManualTimeControl()
         {
             return _manualTimeControl;

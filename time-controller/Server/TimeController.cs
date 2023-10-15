@@ -1,11 +1,10 @@
 using System;
 using System.Linq;
-using System.Threading.Tasks;
+using CfxUtils.Convar.Shared;
+using CfxUtils.Logging;
 using CitizenFX.Core;
-using CfxUtils.Shared.Convar;
-using CfxUtils.Shared.Logging;
 using Magicallity.Time.Shared;
-using static CitizenFX.Core.Native.API;
+using static CitizenFX.Server.Native.Natives;
 
 namespace Magicallity.Time.Server
 {
@@ -29,15 +28,15 @@ namespace Magicallity.Time.Server
         #region Constructor
         public TimeController()
         {
-            GlobalState["clock:day:msPerMinute"] = _msPerMinuteDuringDayConvar.Value;
-            GlobalState["clock:day:start"] = _dayStartHourConvar.Value;
+            StateBag.Global["clock:day:msPerMinute"] = _msPerMinuteDuringDayConvar.Value;
+            StateBag.Global["clock:day:start"] = _dayStartHourConvar.Value;
 
-            GlobalState["clock:night:msPerMinute"] = _msPerMinuteDuringNightConvar.Value;
-            GlobalState["clock:night:start"] = _nightHourStartConvar.Value;
+            StateBag.Global["clock:night:msPerMinute"] = _msPerMinuteDuringNightConvar.Value;
+            StateBag.Global["clock:night:start"] = _nightHourStartConvar.Value;
 
-            GlobalState["clock:paused"] = _isClockPausedConvar.Value;
+            StateBag.Global["clock:paused"] = _isClockPausedConvar.Value;
 
-            var timeTickString = GetResourceKvpString("clock:ticks") ?? "0";
+            var timeTickString = GetResourceKvpString("clock:ticks").ToString() ?? "0";
             var timeTick = long.Parse(timeTickString);
 
             _currentTime = timeTick == 0 ? DateTime.UtcNow : new DateTime(timeTick, DateTimeKind.Utc);
@@ -48,17 +47,6 @@ namespace Magicallity.Time.Server
             {
                 Tick += UpdateTimeTick;
             }
-
-            Exports.Add("SetDayStartHour", new Action<int>(SetDayStartHour));
-            Exports.Add("SetNightStartHour", new Action<int>(SetNightStartHour));
-
-            Exports.Add("SetDayMillisecondsPerGameMinute", new Action<int>(SetDayMillisecondsPerGameMinute));
-            Exports.Add("SetNightMillisecondsPerGameMinute", new Action<int>(SetNightMillisecondsPerGameMinute));
-
-            Exports.Add("SetClockTime", new Action<int, int, int>(SetClockTime));
-            Exports.Add("SetClockDate", new Action<int, int, int>(SetClockDate));
-
-            Exports.Add("PauseClock", new Action<bool>(PauseClock));
         }
         #endregion
 
@@ -68,9 +56,9 @@ namespace Magicallity.Time.Server
         /// </summary>
         public void Sync()
         {
-            Log.Debug($"Syncing clock state to all clients");
+            Debug.WriteLine($"Syncing clock state to all clients");
 
-            GlobalState["clock:ticks"] = _currentTime.Ticks.ToString();
+            StateBag.Global["clock:ticks"] = _currentTime.Ticks.ToString();
 
             _currentYear = _currentTime.Year;
             _currentMonth = _currentTime.Month;
@@ -83,7 +71,7 @@ namespace Magicallity.Time.Server
         /// </summary>
         public void Save()
         {
-            Log.Debug($"Saving clock state as {LogColors.Cyan}{_currentTime:G}{LogColors.Reset}");
+            Debug.WriteLine($"Saving clock state as {LogFormatter.ToCyan(_currentTime.ToString("G"))}");
 
             SetResourceKvp("clock:ticks", _currentTime.Ticks.ToString());
         }
@@ -103,11 +91,12 @@ namespace Magicallity.Time.Server
         /// Gets the hour which indicates the start of the day
         /// </summary>
         /// <param name="newHour">The hour which marks the start of the day</param>
+        [Export("SetDayStartHour")]
         public void SetDayStartHour(int newHour)
         {
             newHour = MathUtil.Clamp(newHour, 0, 23);
 
-            GlobalState["clock:day:start"] = newHour;
+            StateBag.Global["clock:day:start"] = newHour;
             _dayStartHourConvar.Value = newHour;
         }
 
@@ -115,11 +104,12 @@ namespace Magicallity.Time.Server
         /// Gets the hour which indicates the start of the night
         /// </summary>
         /// <param name="newHour">The hour which marks the start of the night</param>
+        [Export("SetNightStartHour")]
         public void SetNightStartHour(int newHour)
         {
             newHour = MathUtil.Clamp(newHour, 0, 23);
 
-            GlobalState["clock:night:start"] = newHour;
+            StateBag.Global["clock:night:start"] = newHour;
             _nightHourStartConvar.Value = newHour;
         }
         #endregion
@@ -129,9 +119,10 @@ namespace Magicallity.Time.Server
         /// Sets the amount of milliseconds that a game minute will take during the day
         /// </summary>
         /// <param name="milliseconds">The amount of milliseconds a game minute during the day will take</param>
+        [Export("SetDayMillisecondsPerGameMinute")]
         public void SetDayMillisecondsPerGameMinute(int milliseconds)
         {
-            GlobalState["clock:day:msPerMinute"] = milliseconds;
+            StateBag.Global["clock:day:msPerMinute"] = milliseconds;
             _msPerMinuteDuringDayConvar.Value = milliseconds;
         }
 
@@ -139,9 +130,10 @@ namespace Magicallity.Time.Server
         /// Sets the amount of milliseconds that a game minute will take during the night
         /// </summary>
         /// <param name="milliseconds">The amount of milliseconds a game minute during the day will take</param>
+        [Export("SetNightMillisecondsPerGameMinute")]
         public void SetNightMillisecondsPerGameMinute(int milliseconds)
         {
-            GlobalState["clock:night:msPerMinute"] = milliseconds;
+            StateBag.Global["clock:night:msPerMinute"] = milliseconds;
             _msPerMinuteDuringNightConvar.Value = milliseconds;
         }
         #endregion
@@ -153,6 +145,7 @@ namespace Magicallity.Time.Server
         /// <param name="hour">The hour to set the clock to</param>
         /// <param name="minute">The minute to set the clock to</param>
         /// <param name="second">The second to set the clock to</param>
+        [Export("SetClockTime")]
         public void SetClockTime(int hour, int minute, int second)
         {
             _currentTime = new DateTime(_currentTime.Year, _currentTime.Month, _currentTime.Day, hour, minute, second);
@@ -166,6 +159,7 @@ namespace Magicallity.Time.Server
         /// <param name="day">The day to set the clock to</param>
         /// <param name="month">The month to set the clock to</param>
         /// <param name="year">The year to set the clock to</param>
+        [Export("SetClockDate")]
         public void SetClockDate(int day, int month, int year)
         {
             _currentTime = new DateTime(year, month, day, _currentTime.Hour, _currentTime.Minute, _currentTime.Second);
@@ -177,9 +171,10 @@ namespace Magicallity.Time.Server
         /// Sets the clock pause state
         /// </summary>
         /// <param name="state">The state of the clock pause</param>
+        [Export("PauseClock")]
         public void PauseClock(bool state)
         {
-            GlobalState["clock:paused"] = state;
+            StateBag.Global["clock:paused"] = state;
 
             _isClockPausedConvar.Value = state;
 
@@ -193,13 +188,8 @@ namespace Magicallity.Time.Server
         #endregion
 
         #region Commands, Events and Ticks
-        [Command("time", Restricted = true)]
-        private void OnTimeCommand(string[] args) => DoEditCommand(args);
-
-        [Command("clock", Restricted = true)]
-        private void OnClockCommand(string[] args) => DoEditCommand(args);
-
-        // TODO use [Export] once mono_v2 has been implemented
+        [Command("time", Restricted = true, RemapParameters = true)]
+        [Command("clock", Restricted = true, RemapParameters = true)]
         private void DoEditCommand(string[] args)
         {
             var subCommand = args.GetArgAs(0, "").ToLower();
@@ -208,11 +198,11 @@ namespace Magicallity.Time.Server
             {
                 SetClockTime(args.GetArgAs(1, 0), args.GetArgAs(2, 0), args.GetArgAs(3, 0));
 
-                Log.Information($"Set clock to: {LogColors.Yellow}{Clock.GetHours():D2}:{Clock.GetMinutes():D2}{LogColors.Reset}");
+                Debug.WriteLine($"Set clock to: {LogFormatter.ToYellow($"{Clock.GetHours():D2}:{Clock.GetMinutes():D2}")}");
             }
             else if (subCommand is "get")
             {
-                Log.Information($"Current clock is: {LogColors.Yellow}{Clock.GetHours():D2}:{Clock.GetMinutes():D2}{LogColors.Reset}");
+                Debug.WriteLine($"Current clock is: {LogFormatter.ToYellow($"{Clock.GetHours():D2}:{Clock.GetMinutes():D2}")}");
             }
             else if (subCommand is "pause" or "freeze")
             {
@@ -231,7 +221,7 @@ namespace Magicallity.Time.Server
                         break;
                 }
 
-                Log.Information($"Clock has been {LogColors.Yellow}{(Clock.GetPaused() ? "paused" : "unpaused")}{LogColors.Reset}");
+                Debug.WriteLine($"Clock has been {(Clock.GetPaused() ? "paused".ToYellow() : "unpaused".ToGreen())}");
             }
             else if (subCommand is "sync")
             {
@@ -255,7 +245,7 @@ namespace Magicallity.Time.Server
                         switch (startAction)
                         {
                             case "get":
-                                Log.Information($"{subCommandCapitalized} currently starts at {LogColors.Yellow}{startHour}{LogColors.Reset}");
+                                Debug.WriteLine($"{subCommandCapitalized} currently starts at {startHour.ToString().ToYellow()}");
                                 break;
                             case "set":
                                 var newTime = args.GetArgAs(3, startHour);
@@ -269,10 +259,10 @@ namespace Magicallity.Time.Server
                                     SetNightStartHour(newTime);
                                 }
 
-                                Log.Information($"{subCommandCapitalized} start time set to {LogColors.Yellow}{newTime}{LogColors.Reset}");
+                                Debug.WriteLine($"{subCommandCapitalized} start time set to {newTime.ToString().ToYellow()}");
                                 break;
                         }
-
+                            
                         break;
                     case "ms":
                         var msAction = args.GetArgAs(2, "get");
@@ -281,7 +271,7 @@ namespace Magicallity.Time.Server
                         switch (msAction)
                         {
                             case "get":
-                                Log.Information($"{subCommandCapitalized} minute currently lasts {LogColors.Yellow}{currentMs}ms{LogColors.Reset}");
+                                Debug.WriteLine($"{subCommandCapitalized} minute currently lasts {LogFormatter.ToYellow(currentMs + "ms")}");
                                 break;
                             case "set":
                                 var newTime = args.GetArgAs(3, subCommand == "day" ? Clock.GetDayStartHour() : Clock.GetNightStartHour());
@@ -295,7 +285,7 @@ namespace Magicallity.Time.Server
                                     SetNightMillisecondsPerGameMinute(newTime);
                                 }
 
-                                Log.Information($"{subCommandCapitalized} minute set to last {LogColors.Yellow}{newTime}ms{LogColors.Reset}");
+                                Debug.WriteLine($"{subCommandCapitalized} minute set to last {LogFormatter.ToYellow(currentMs + "ms")}");
                                 break;
                         }
 
@@ -315,9 +305,14 @@ namespace Magicallity.Time.Server
             Save();
         }
 
-        private async Task UpdateTimeTick()
+        private async Coroutine UpdateTimeTick()
         {
-            await Delay(Clock.GetCurrentMillisecondsPerGameMinute());
+            await Delay((uint)Clock.GetCurrentMillisecondsPerGameMinute());
+
+            if (Clock.GetPaused())
+            {
+                return;
+            }
 
             _currentTime = _currentTime.AddMinutes(1);
 
@@ -326,27 +321,27 @@ namespace Magicallity.Time.Server
 
             if (_currentTime.Year != _currentYear)
             {
-                TriggerEvent("time:onNextYear", _currentYear, _currentTime.Year);
+                Events.TriggerEvent("time:onNextYear", _currentYear, _currentTime.Year);
             }
 
             if (_currentTime.Month != _currentMonth)
             {
-                TriggerEvent("time:onNextMonth", _currentMonth, _currentTime.Month);
+                Events.TriggerEvent("time:onNextMonth", _currentMonth, _currentTime.Month);
             }
 
             if (_currentTime.Day != _currentDay)
             {
-                TriggerEvent("time:onNextDay", _currentDay, _currentTime.Day);
+                Events.TriggerEvent("time:onNextDay", _currentDay, _currentTime.Day);
             }
 
             if (_currentTime.Hour != _currentHour)
             {
-                TriggerEvent("time:onNextHour", _currentHour, _currentTime.Hour);
+                Events.TriggerEvent("time:onNextHour", _currentHour, _currentTime.Hour);
 
                 Save();
             }
 
-            TriggerEvent("time:onNextMinute", _currentTime.Minute - 1, _currentTime.Minute);
+            Events.TriggerEvent("time:onNextMinute", _currentTime.Minute - 1, _currentTime.Minute);
 
             Sync();
         }

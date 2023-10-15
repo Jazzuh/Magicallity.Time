@@ -5,40 +5,8 @@ namespace Magicallity.Time.Shared
 {
     public class Clock : BaseScript
     {
-        #region Fields
-        private static Clock _instance;
-        #endregion
-
-        #region Constructor
-        public Clock()
-        {
-            _instance = this;
-
-            Exports.Add("GetClockYear", new Func<int>(GetClockYear));
-
-            Exports.Add("GetClockMonth", new Func<int>(GetClockMonth));
-
-            Exports.Add("IsDay", new Func<bool>(IsDay));
-            Exports.Add("IsNight", new Func<bool>(IsNight));
-            Exports.Add("GetClockDayOfMonth", new Func<int>(GetDayOfMonth));
-            Exports.Add("GetClockDayOfWeek", new Func<int>(GetDayOfWeek));
-
-            Exports.Add("GetClockHours", new Func<int>(GetHours));
-            Exports.Add("GetDayStartHour", new Func<int>(GetDayStartHour));    
-            Exports.Add("GetNightStartHour", new Func<int>(GetNightStartHour));  
-            
-            Exports.Add("GetClockMinutes", new Func<int>(GetMinutes));
-            Exports.Add("GetDayMillisecondsPerGameMinute", new Func<int>(GetDayMillisecondsPerGameMinute));    
-            Exports.Add("GetNightMillisecondsPerGameMinute", new Func<int>(GetNightMillisecondsPerGameMinute));    
-            Exports.Add("GetCurrentMillisecondsPerGameMinute", new Func<int>(GetCurrentMillisecondsPerGameMinute));   
-
-            Exports.Add("GetClockSeconds", new Func<int>(GetSeconds));
-            
-            Exports.Add("GetClockPaused", new Func<bool>(GetPaused));    
-        }
-        #endregion
-
         #region Year
+        [Export("GetClockYear")]
         public static int GetClockYear()
         {
             return getTime().Year;
@@ -46,6 +14,7 @@ namespace Magicallity.Time.Shared
         #endregion
 
         #region Month
+        [Export("GetClockMonth")]
         public static int GetClockMonth()
         {
             return getTime().Month;
@@ -57,6 +26,7 @@ namespace Magicallity.Time.Shared
         /// Gets if it is day
         /// </summary>
         /// <returns>If it is day</returns>
+        [Export("IsDay")]
         public static bool IsDay()
         {
             var currentHour = GetHours();
@@ -68,6 +38,7 @@ namespace Magicallity.Time.Shared
         /// Gets if it is currently night
         /// </summary>
         /// <returns>If it is night</returns>
+        [Export("IsNight")]
         public static bool IsNight()
         {
             return !IsDay();
@@ -77,11 +48,13 @@ namespace Magicallity.Time.Shared
         /// Gets the current day
         /// </summary>
         /// <returns>The current day</returns>
+        [Export("GetClockDayOfMonth")]
         public static int GetDayOfMonth()
         {
             return getTime().Day;
         }
 
+        [Export("GetClockDayOfWeek")]
         public static int GetDayOfWeek()
         {
             return (int)getTime().DayOfWeek;
@@ -93,6 +66,7 @@ namespace Magicallity.Time.Shared
         /// Gets the current hour
         /// </summary>
         /// <returns>The current hour. 0-23</returns>
+        [Export("GetClockHours")]
         public static int GetHours()
         {
             return getTime().Hour;
@@ -102,26 +76,29 @@ namespace Magicallity.Time.Shared
         /// Gets the current minute
         /// </summary>
         /// <returns>The current minute. 0-59</returns>
+        [Export("GetDayStartHour")]
         public static int GetDayStartHour()
         {
-            return _instance.GlobalState["clock:day:start"] ?? 6;
+            return StateBag.Global["clock:day:start"] ?? 6;
         }
-        
+
         /// <summary>
         /// Gets the hour which indicates the start of the night
         /// </summary>
         /// <returns>The hour which marks the start of the night</returns>
+        [Export("GetNightStartHour")]
         public static int GetNightStartHour()
         {
-            return _instance.GlobalState["clock:night:start"] ?? 21;
+            return StateBag.Global["clock:night:start"] ?? 21;
         }
         #endregion
-        
+
         #region Minute
         /// <summary>
         /// Gets the current minute
         /// </summary>
         /// <returns>The current minute</returns>
+        [Export("GetClockMinutes")]
         public static int GetMinutes()
         {
             return getTime().Minute;
@@ -131,24 +108,27 @@ namespace Magicallity.Time.Shared
         /// Gets the amount of milliseconds that a game minute will take during the day
         /// </summary>
         /// <returns>The amount of milliseconds a game minute during the day will take</returns>
+        [Export("GetDayMillisecondsPerGameMinute")]
         public static int GetDayMillisecondsPerGameMinute()
         {
-            return _instance.GlobalState["clock:day:msPerMinute"] ?? 2000;
+            return StateBag.Global["clock:day:msPerMinute"] ?? 2000;
         }
 
         /// <summary>
         /// Gets the amount of milliseconds that a game minute will take during the night
         /// </summary>
         /// <returns>The amount of milliseconds a game minute during the night will take</returns>
+        [Export("GetNightMillisecondsPerGameMinute")]
         public static int GetNightMillisecondsPerGameMinute()
         {
-            return _instance.GlobalState["clock:night:msPerMinute"] ?? 2000;
+            return StateBag.Global["clock:night:msPerMinute"] ?? 2000;
         }
 
         /// <summary>
         /// Gets the current amount of milliseconds that a game minute will take
         /// </summary>
         /// <returns>The amount of milliseconds that a game minute will take</returns>
+        [Export("GetCurrentMillisecondsPerGameMinute")]
         public static int GetCurrentMillisecondsPerGameMinute()
         {
             return IsDay() ? GetDayMillisecondsPerGameMinute() : GetNightMillisecondsPerGameMinute();
@@ -160,6 +140,7 @@ namespace Magicallity.Time.Shared
         /// Gets the current second
         /// </summary>
         /// <returns>The current second</returns>
+        [Export("GetClockSeconds")]
         public static int GetSeconds()
         {
             return getTime().Second;
@@ -171,16 +152,17 @@ namespace Magicallity.Time.Shared
         /// Gets if the clock is currently paused
         /// </summary>
         /// <returns>If the clock is currently paused</returns>
+        [Export("GetClockPaused")]
         public static bool GetPaused()
         {
-            return _instance.GlobalState["clock:paused"] ?? false;
+            return StateBag.Global["clock:paused"] ?? false;
         }
         #endregion
 
         #region Time Getter
         private static DateTime getTime()
         {
-            var timeTickString = _instance.GlobalState["clock:ticks"] ?? "0";
+            var timeTickString = StateBag.Global["clock:ticks"] ?? "0";
             var timeTick = long.Parse(timeTickString);
 
             return new DateTime(timeTick);

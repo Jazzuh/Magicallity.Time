@@ -1,8 +1,33 @@
-<Project Sdk="CitizenFX.Sdk.Client/0.2.3">
-    <ItemGroup>
-        <Compile Include="../Shared/**/*.cs" />
-    </ItemGroup>
-    <ItemGroup>
-      <ProjectReference Include="..\..\time-controller-proxy\Client\Magicallity.Time.Client.Proxy.csproj" />
-    </ItemGroup>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net452</TargetFramework>
+    <DebugType>portable</DebugType>
+    <TargetName>$(AssemblyName).net</TargetName>
+    <DefineConstants>CLIENT</DefineConstants>
+    <LangVersion>9</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../Shared/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+
+    <Reference Include="CitizenFX.Core">
+      <HintPath>..\..\references\CitizenFX.Core.dll</HintPath>
+    </Reference>
+
+    <Reference Include="CitizenFX.FiveM">
+      <HintPath>..\..\references\CitizenFX.FiveM.dll</HintPath>
+    </Reference>
+
+    <Reference Include="CitizenFX.FiveM.Native">
+      <HintPath>..\..\references\CitizenFX.FiveM.Native.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+  <ProjectReference Include="..\..\time-controller-proxy\Client\Magicallity.Time.Client.Proxy.csproj" />
+  </ItemGroup>
 </Project>

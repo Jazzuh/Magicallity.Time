@@ -6,7 +6,7 @@ namespace time_controller_proxy_test.Client
 {
     public class ClientMain : BaseScript
     {
-        [Command("client_proxy_get")]
+        [Command("client_proxy_get", RemapParameters = true)]
         private void OnClientProxyGet(string[] args)
         {
             Debug.WriteLine($"CurrentDate: {Clock.CurrentDate:G}");
@@ -34,7 +34,7 @@ namespace time_controller_proxy_test.Client
             Debug.WriteLine($"Paused: {Clock.Paused}");
         }
 
-        [Command("client_proxy_set_control")]
+        [Command("client_proxy_set_control", RemapParameters = true)]
         private void OnClientProxySetControl(string[] args)
         {
             var manuallyControl = args.GetArgAs(0, false);
@@ -44,7 +44,7 @@ namespace time_controller_proxy_test.Client
             Debug.WriteLine($"Clock manual control state is: {Clock.ManuallyControl}");
         }
 
-        [Command("client_proxy_set_time")]
+        [Command("client_proxy_set_time", RemapParameters = true)]
         private void OnClientProxySetTime(string[] args)
         {
             var hour = args.GetArgAs(0, 0);

@@ -1,19 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-      <TargetFramework>netstandard2.0</TargetFramework>
-      <DebugType>portable</DebugType>
-      <TargetName>$(AssemblyName).net</TargetName>
-      <DefineConstants>SERVER</DefineConstants>
-    </PropertyGroup>
-  
-    <ItemGroup>
-      <PackageReference Include="CitizenFX.Core.Server" Version="1.0.*" />
-  
-      <Compile Include="../Shared/**/*.cs" />
-    </ItemGroup>
-  
-    <ItemGroup>
-      <ProjectReference Include="..\..\time-controller-proxy\Server\Magicallity.Time.Server.Proxy.csproj" />
-    </ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DebugType>portable</DebugType>
+    <TargetName>$(AssemblyName).net</TargetName>
+    <DefineConstants>SERVER</DefineConstants>
+    <LangVersion>9</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="CitizenFX.Core">
+      <HintPath>..\..\references\CitizenFX.Core.dll</HintPath>
+    </Reference>
+
+    <Reference Include="CitizenFX.Server">
+      <HintPath>..\..\references\CitizenFX.Server.dll</HintPath>
+    </Reference>
+
+    <Compile Include="../Shared/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\time-controller-proxy\Server\Magicallity.Time.Server.Proxy.csproj" />
+  </ItemGroup>
 </Project>
-  
